@@ -72,8 +72,8 @@
     return self;
 }
 
-- (id)initWithSectionTitles:(NSArray *)sectiontitles {
-    self = [self initWithFrame:CGRectZero];
+- (id)initWithSectionTitles:(NSArray<NSString *> *)sectiontitles {
+    self = [super initWithFrame:CGRectZero];
     
     if (self) {
         [self commonInit];
@@ -179,12 +179,14 @@
     _sectionTitles = sectionTitles;
     
     [self setNeedsLayout];
+    [self setNeedsDisplay];
 }
 
 - (void)setSectionImages:(NSArray *)sectionImages {
     _sectionImages = sectionImages;
     
     [self setNeedsLayout];
+    [self setNeedsDisplay];
 }
 
 - (void)setSelectionIndicatorLocation:(HMSegmentedControlSelectionIndicatorLocation)selectionIndicatorLocation {
@@ -218,6 +220,10 @@
 #pragma mark - Drawing
 
 - (CGSize)measureTitleAtIndex:(NSUInteger)index {
+    if (index >= self.sectionTitles.count) {
+        return CGSizeZero;
+    }
+    
     id title = self.sectionTitles[index];
     CGSize size = CGSizeZero;
     BOOL selected = (index == self.selectedSegmentIndex) ? YES : NO;
@@ -285,7 +291,8 @@
             CGSize size = [self measureTitleAtIndex:idx];
             stringWidth = size.width;
             stringHeight = size.height;
-            CGRect rectDiv, fullRect;
+            CGRect rectDiv = CGRectZero;
+            CGRect fullRect = CGRectZero;
             
             // Text inside the CATextLayer will appear blurry unless the rect values are rounded
             BOOL locationUp = (self.selectionIndicatorLocation == HMSegmentedControlSelectionIndicatorLocationUp);
@@ -320,7 +327,9 @@
             CATextLayer *titleLayer = [CATextLayer layer];
             titleLayer.frame = rect;
             titleLayer.alignmentMode = kCAAlignmentCenter;
-            titleLayer.truncationMode = kCATruncationEnd;
+            if ([UIDevice currentDevice].systemVersion.floatValue < 10.0 ) {
+                titleLayer.truncationMode = kCATruncationEnd;
+            }
             titleLayer.string = [self attributedTitleAtIndex:idx];
             titleLayer.contentsScale = [[UIScreen mainScreen] scale];
             
@@ -419,7 +428,10 @@
             titleLayer.frame = textRect;
             titleLayer.alignmentMode = kCAAlignmentCenter;
             titleLayer.string = [self attributedTitleAtIndex:idx];
-            titleLayer.truncationMode = kCATruncationEnd;
+	    
+	    if ([UIDevice currentDevice].systemVersion.floatValue < 10.0 ) {
+            	titleLayer.truncationMode = kCATruncationEnd;
+	    }
 
 			if (self.imageAsBadge) {
 				CGRect calculation = [titleLayer.string boundingRectWithSize:textRect.size options:nil context:nil];
@@ -743,7 +755,7 @@
 }
 
 - (void)scrollToSelectedSegmentIndex:(BOOL)animated {
-    CGRect rectForSelectedIndex;
+    CGRect rectForSelectedIndex = CGRectZero;
     CGFloat selectedSegmentOffset = 0;
     if (self.segmentWidthStyle == HMSegmentedControlSegmentWidthStyleFixed) {
         rectForSelectedIndex = CGRectMake(self.segmentWidth * self.selectedSegmentIndex,
