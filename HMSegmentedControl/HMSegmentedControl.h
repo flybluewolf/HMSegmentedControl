@@ -232,4 +232,6 @@ Default is NO. Set to YES to use section image as title badge.
 - (void)setIndexChangeBlock:(IndexChangeBlock)indexChangeBlock;
 - (void)setTitleFormatter:(HMTitleFormatterBlock)titleFormatter;
 
+- (CGRect)frameForSelectionIndicator;
+
 @end
